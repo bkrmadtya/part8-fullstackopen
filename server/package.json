@@ -1,0 +1,15 @@
+{
+  "name": "small-library",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Bikram Karki",
+  "license": "ISC",
+  "dependencies": {
+    "apollo-server": "^2.9.15",
+    "graphql": "^14.5.8"
+  }
+}
