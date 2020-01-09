@@ -23,8 +23,6 @@ const ADD_BOOK = gql`
   }
 `;
 
-// { query: ALL_AUTHORS },
-
 const NewBook = props => {
   const [title, setTitle] = useState('');
   const [author, setAuthor] = useState('');
