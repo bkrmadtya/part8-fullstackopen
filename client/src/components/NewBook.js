@@ -1,9 +1,29 @@
 import React, { useState } from 'react';
-import { useQuery, useMutation } from 'react-apollo';
+import { useSubscription, useMutation, useApolloClient } from 'react-apollo';
 import { gql } from 'apollo-boost';
 
 import { ALL_AUTHORS } from './Authors';
 import { ALL_BOOKS } from './Books';
+
+const BOOK_DETAILS = gql`
+  fragment BookDetails on Book {
+    title
+    published
+    author {
+      name
+    }
+    genres
+  }
+`;
+
+const BOOK_ADDED = gql`
+  subscription {
+    bookAdded {
+      ...BookDetails
+    }
+  }
+  ${BOOK_DETAILS}
+`;
 
 const ADD_BOOK = gql`
   mutation addBook(
@@ -38,6 +58,38 @@ const NewBook = props => {
       setErrorMessage(null);
     }, 2000);
   };
+
+  const notify = message => {
+    setErrorMessage(message);
+
+    setTimeout(() => {
+      setErrorMessage(null);
+    }, 2000);
+  };
+
+  const client = useApolloClient();
+
+  const updateCacheWith = bookAdded => {
+    const includedIn = (set, object) => set.map(p => p.id).includes(object.id);
+
+    const dataInStore = client.readQuery({ query: ALL_BOOKS });
+    if (!includedIn(dataInStore.allBooks, bookAdded)) {
+      dataInStore.allBooks.push(bookAdded);
+      client.writeQuery({
+        query: ALL_BOOKS,
+        data: dataInStore
+      });
+    }
+  };
+
+  useSubscription(BOOK_ADDED, {
+    onSubscriptionData: ({ subscriptionData }) => {
+      const bookAdded = subscriptionData.data.bookAdded;
+      console.log(subscriptionData);
+      notify(`New book ${bookAdded.title} by ${bookAdded.author.name} added!`);
+      updateCacheWith(bookAdded);
+    }
+  });
 
   const [addBook] = useMutation(ADD_BOOK, {
     onError: handleError,
